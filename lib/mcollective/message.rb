@@ -3,7 +3,7 @@ module MCollective
   class Message
     attr_reader :message, :request, :validated, :msgtime, :payload, :type, :expected_msgid, :reply_to
     attr_accessor :headers, :agent, :collective, :filter
-    attr_accessor :requestid, :discovered_hosts, :options, :ttl
+    attr_accessor :requestid, :discovered_hosts, :options, :ttl, :publish_timeout
 
     VALIDTYPES = [:message, :request, :direct_request, :reply]
 
@@ -48,6 +48,7 @@ module MCollective
 
       @ttl = @options[:ttl] || Config.instance.ttl
       @msgtime = 0
+      @publish_timeout = @options[:publish_timeout] || Config.instance.publish_timeout
 
       @validated = false
 
@@ -215,21 +216,17 @@ module MCollective
 
     # publish a reply message by creating a target name and sending it
     def publish
-      Timeout.timeout(2) do
-        # If we've been specificaly told about hosts that were discovered
-        # use that information to do P2P calls if appropriate else just
-        # send it as is.
-        if @discovered_hosts && Config.instance.direct_addressing
-          if @discovered_hosts.size <= Config.instance.direct_addressing_threshold
-            self.type = :direct_request
-            Log.debug("Handling #{requestid} as a direct request")
-          end
-
-          PluginManager["connector_plugin"].publish(self)
-        else
-          PluginManager["connector_plugin"].publish(self)
+      # If we've been specificaly told about hosts that were discovered
+      # use that information to do P2P calls if appropriate else just
+      # send it as is.
+      if @discovered_hosts && Config.instance.direct_addressing
+        if @discovered_hosts.size <= Config.instance.direct_addressing_threshold
+          self.type = :direct_request
+          Log.debug("Handling #{requestid} as a direct request")
         end
       end
+
+      PluginManager["connector_plugin"].publish(self)
     end
 
     def create_reqid

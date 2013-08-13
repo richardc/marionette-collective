@@ -34,15 +34,18 @@ module MCollective
       @connection.disconnect
     end
 
-    # Sends a request and returns the generated request id, doesn't wait for
-    # responses and doesn't execute any passed in code blocks for responses
-    def sendreq(msg, agent, filter = {})
+    def create_request(msg, agent, filter = {})
       if msg.is_a?(Message)
         request = msg
         agent = request.agent
       else
         ttl = @options[:ttl] || @config.ttl
-        request = Message.new(msg, nil, {:agent => agent, :type => :request, :collective => collective, :filter => filter, :ttl => ttl})
+        request = Message.new(msg, nil, {:agent => agent,
+                                         :type => :request,
+                                         :collective => collective,
+                                         :filter => filter,
+                                         :ttl => ttl})
+
         request.reply_to = @options[:reply_to] if @options[:reply_to]
       end
 
@@ -51,9 +54,14 @@ module MCollective
       Log.debug("Sending request #{request.requestid} to the #{request.agent} agent with ttl #{request.ttl} in collective #{request.collective}")
 
       subscribe(agent, :reply) unless request.reply_to
+      request
+    end
 
+    # Sends a request and returns the generated request id, doesn't wait for
+    # responses and doesn't execute any passed in code blocks for responses
+    def sendreq(msg, agent, filter = {})
+      request = create_request(msg, agent, filter)
       request.publish
-
       request.requestid
     end
 
@@ -76,6 +84,7 @@ module MCollective
         @subscriptions.delete(agent)
       end
     end
+
     # Blocking call that waits for ever for a message to arrive.
     #
     # If you give it a requestid this means you've previously send a request
@@ -133,7 +142,10 @@ module MCollective
 
       @options = options if options
 
-      stat = {:starttime => Time.now.to_f, :discoverytime => 0, :blocktime => 0, :totaltime => 0}
+      stat = {:starttime     => Time.now.to_f,
+              :discoverytime => 0,
+              :blocktime     => 0,
+              :totaltime     => 0}
 
       timeout = @discoverer.discovery_timeout(@options[:timeout], @options[:filter])
 
@@ -141,25 +153,31 @@ module MCollective
 
       hosts_responded = 0
       reqid = nil
+      resp = []
 
       begin
         Log.debug("Publishing request to agent %s with timeout %d" % [agent, timeout])
 
-        Timeout.timeout(timeout) do
-          reqid = sendreq(body, agent, @options[:filter])
+        request = create_request(body, agent, @options[:filter])
 
-          loop do
-            resp = receive(reqid)
+        receiver = Thread.new do
+          start_at = Time.now.to_f
+          stop_at = start_at + timeout
 
+          while (Time.now.to_f < stop_at && hosts_responded < waitfor)
+            response =  receive(request.requestid)
             hosts_responded += 1
-
-            yield(resp.payload)
-
-            break if (waitfor != 0 && hosts_responded >= waitfor)
+            yield(response.payload)
           end
         end
+
+        publisher = Thread.new do
+          request.publish
+        end
+
+        receiver.join
+        publisher.join
       rescue Interrupt => e
-      rescue Timeout::Error => e
       ensure
         unsubscribe(agent, :reply)
       end

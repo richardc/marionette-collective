@@ -18,6 +18,7 @@ module MCollective
       Discovery.expects(:new).returns(@discoverer)
 
       Config.instance.instance_variable_set("@configured", true)
+      Config.instance.stubs(:publish_timeout).returns(10)
       PluginManager.expects("[]").with("connector_plugin").returns(@connector)
       PluginManager.expects("[]").with("security_plugin").returns(@security)
 
@@ -46,7 +47,30 @@ module MCollective
         message.expects(:requestid).twice
         @client.sendreq(message, "rspec")
       end
+
+      it "should publish requests with the correct timeout" do
+        message = Message.new("rspec", nil, {:agent => "rspec", :type => :request, :collective => "mcollective", :filter => Util.empty_filter, :options => Util.default_options})
+
+        message.expects(:encode!)
+        @client.expects(:subscribe).with("rspec", :reply)
+        message.expects(:requestid).twice
+        Timeout.expects(:timeout).with(10)
+        @client.sendreq(message, "rspec")
+      end
+
+      it "should log a warning if all the requests could not be published" do
+        message = Message.new("rspec", nil, {:agent => "rspec", :type => :request, :collective => "mcollective", :filter => Util.empty_filter, :options => Util.default_options})
+
+        message.expects(:encode!)
+        @client.expects(:subscribe).with("rspec", :reply)
+        message.expects(:requestid).twice
+        @client.options[:publish_timeout] = 5
+        Timeout.expects(:timeout).with(5).raises(Timeout::Error)
+        Log.expects(:warn).with("Could not publish all requests. Publishing timed out.")
+        @client.sendreq(message, "rspec")
+      end
     end
+
     describe "#req" do
       it "should record the requestid" do
         message = Message.new("rspec", nil, {:agent => "rspec", :type => :request, :collective => "mcollective", :filter => Util.empty_filter, :options => Util.default_options})

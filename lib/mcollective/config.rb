@@ -15,6 +15,7 @@ module MCollective
     attr_reader :main_collective, :ssl_cipher, :registration_collective
     attr_reader :direct_addressing, :direct_addressing_threshold, :ttl, :helptemplatedir
     attr_reader :queueprefix, :default_discovery_method, :default_discovery_options
+    attr_reader :publish_timeout
 
     def initialize
       @configured = false
@@ -115,6 +116,12 @@ module MCollective
                   @default_discovery_options << val
                 when "default_discovery_method"
                   @default_discovery_method = val
+                when "publish_timeout"
+                  begin
+                    @publish_timeout = Integer(val)
+                  rescue ArgumentError
+                    raise "Cannot convert config parameter 'publish_timeout' from '#{val}' to Integer."
+                  end
                 else
                   raise("Unknown config parameter #{key}")
               end
@@ -191,6 +198,7 @@ module MCollective
       @rpchelptemplate = File.join(File.dirname(configfile), "rpc-help.erb")
       @rpchelptemplate = "/etc/mcollective/rpc-help.erb" unless File.exists?(@rpchelptemplate)
       @helptemplatedir = File.dirname(@rpchelptemplate)
+      @publish_timeout = 10
     end
 
     def read_plugin_config_dir(dir)

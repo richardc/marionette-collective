@@ -50,6 +50,29 @@ module MCollective
 
           Client.new("foo", :options => {:config => "/nonexisting"})
         end
+
+        it "should default the discovery_timeout to nil" do
+          c = Client.new("rspec", :options => {:config => "/nonexisting"})
+          c.instance_variable_get("@discovery_timeout").should == nil
+        end
+
+        it "should accept a supplied discovery_timeout" do
+          c = Client.new("rspec", :options => {:config => "/nonexisting", :disctimeout => 10})
+          c.instance_variable_get("@discovery_timeout").should == 10
+        end
+      end
+
+      describe "#validate_request" do
+        it "should fail when a DDL isn't present" do
+          @client.instance_variable_set("@ddl", nil)
+          expect { @client.validate_request("rspec", {}) }.to raise_error("No DDL found for agent foo cannot validate inputs")
+        end
+
+        it "should validate the input arguments" do
+          @client.ddl.expects(:set_default_input_arguments).with("rspec", {})
+          @client.ddl.expects(:validate_rpc_request).with("rspec", {})
+          @client.validate_request("rspec", {})
+        end
       end
 
       describe "#process_results_with_block" do
@@ -228,10 +251,16 @@ module MCollective
           @client.discovery_method = "rspec"
         end
 
-        it "should adjust discovery timeout for the new method" do
+        it "should adjust timeout for the new method" do
           @client.expects(:discovery_timeout).once.returns(1)
           @client.discovery_method = "rspec"
-          @client.instance_variable_get("@discovery_timeout").should == 1
+          @client.instance_variable_get("@timeout").should == 4
+        end
+
+        it "should preserve any user supplied discovery timeout" do
+          @client.discovery_timeout = 10
+          @client.discovery_method = "rspec"
+          @client.discovery_timeout.should == 10
         end
 
         it "should reset the rpc client" do
@@ -247,6 +276,77 @@ module MCollective
         end
       end
 
+      describe "#class_filter" do
+        it "should add a class to the filter" do
+          @client.class_filter("rspec")
+          @client.filter["cf_class"].should == ["rspec"]
+        end
+
+        it "should be idempotent" do
+          @client.class_filter("rspec")
+          @client.class_filter("rspec")
+          @client.filter["cf_class"].should == ["rspec"]
+        end
+      end
+
+      describe "#fact_filter" do
+        before do
+          Util.stubs(:parse_fact_string).with("rspec=present").returns({:value => "present", :fact => "rspec", :operator => "=="})
+        end
+
+        it "should add a fact to the filter" do
+          @client.fact_filter("rspec", "present", "=")
+          @client.filter["fact"].should == [{:value=>"present", :fact=>"rspec", :operator=>"=="}]
+        end
+
+        it "should be idempotent" do
+          @client.fact_filter("rspec", "present", "=")
+          @client.fact_filter("rspec", "present", "=")
+          @client.filter["fact"].should == [{:value=>"present", :fact=>"rspec", :operator=>"=="}]
+        end
+      end
+
+      describe "#agent_filter" do
+        it "should add an agent to the filter" do
+          @client.filter["agent"].should == ["foo"]
+        end
+
+        it "should be idempotent" do
+          @client.agent_filter("foo")
+          @client.filter["agent"].should == ["foo"]
+        end
+      end
+
+      describe "#identity_filter" do
+        it "should add a node to the filter" do
+          @client.identity_filter("rspec_node")
+          @client.filter["identity"].should == ["rspec_node"]
+        end
+
+        it "should be idempotent" do
+          @client.identity_filter("rspec_node")
+          @client.identity_filter("rspec_node")
+          @client.filter["identity"].should == ["rspec_node"]
+        end
+      end
+
+      describe "#compound_filter" do
+        before do
+          Matcher.stubs(:create_compound_callstack).with("filter").returns("filter")
+        end
+
+        it "should add a compound filter" do
+          @client.compound_filter("filter")
+          @client.filter["compound"].should == ["filter"]
+        end
+
+        it "should be idempotent" do
+          @client.compound_filter("filter")
+          @client.compound_filter("filter")
+          @client.filter["compound"].should == ["filter"]
+        end
+      end
+
       describe "#discovery_timeout" do
         it "should favour the initial options supplied timeout" do
           client = Client.new("rspec", {:options => {:disctimeout => 3, :filter => Util.empty_filter, :config => "/nonexisting"}})
@@ -256,6 +356,21 @@ module MCollective
         it "should return the DDL data if no specific options are supplied" do
           client = Client.new("rspec", {:options => {:disctimeout => nil, :filter => Util.empty_filter, :config => "/nonexisting"}})
           client.discovery_timeout.should == 2
+        end
+      end
+
+      describe "#discovery_timeout=" do
+        it "should store the discovery timeout" do
+          @client.discovery_timeout = 10
+          @client.discovery_timeout.should == 10
+        end
+
+        it "should update the overall timeout with the new discovery timeout" do
+          @client.instance_variable_get("@timeout").should == 4
+
+          @client.discovery_timeout = 10
+
+          @client.instance_variable_get("@timeout").should == 12
         end
       end
 
@@ -290,9 +405,7 @@ module MCollective
 
           client.stubs(:call_agent)
 
-          ddl = mock
-          ddl.expects(:validate_rpc_request).with("rspec", {:arg => :val}).raises("validation failed")
-          client.instance_variable_set("@ddl", ddl)
+          client.expects(:validate_request).with("rspec", {:arg => :val}).raises("validation failed")
 
           expect { client.rspec(:arg => :val) }.to raise_error("validation failed")
         end
@@ -448,6 +561,87 @@ module MCollective
           expect { @client.limit_targets = "a" }.to raise_error(/Invalid/)
           expect { @client.limit_targets = "%1" }.to raise_error(/Invalid/)
           expect { @client.limit_targets = "1.1" }.to raise_error(/Invalid/)
+        end
+      end
+
+      describe "#fire_and_forget_request" do
+        before do
+          @client = stub
+          @discoverer = stub
+          @ddl = stub
+
+          @ddl.stubs(:meta).returns({:timeout => 2})
+
+          @discoverer.stubs(:force_direct_mode?).returns(false)
+          @discoverer.stubs(:ddl).returns(@ddl)
+          @discoverer.stubs(:discovery_method).returns("mc")
+
+          @client.stubs("options=")
+          @client.stubs(:collective).returns("mcollective")
+          @client.stubs(:discoverer).returns(@discoverer)
+          @client.stubs(:sendreq)
+
+          Config.instance.stubs(:loadconfig).with("/nonexisting").returns(true)
+          MCollective::Client.expects(:new).returns(@client)
+          Config.instance.stubs(:direct_addressing).returns(true)
+
+          @rpcclient = Client.new("foo", {:options => {:filter => Util.empty_filter, :config => "/nonexisting"}})
+          @rpcclient.stubs(:validate_request)
+          @request = stub
+          @rpcclient.stubs(:new_request).returns(@request)
+        end
+
+        it "should validate the request" do
+          @rpcclient.expects(:validate_request).with("rspec", {:rspec => "test"}).raises("rspec")
+
+          expect {
+            @rpcclient.fire_and_forget_request("rspec", {:rspec => "test"})
+          }.to raise_error("rspec")
+        end
+
+        it "should set the filter if it was specifically supplied" do
+          message = mock
+          Message.expects(:new).with(@request, nil, {:agent => "foo", :type => :request, :collective => "mcollective", :filter => "filter", :options => @rpcclient.options}).returns(message)
+
+          @rpcclient.expects(:identity_filter_discovery_optimization)
+          @rpcclient.fire_and_forget_request("rspec", {:rspec => "test"}, "filter")
+        end
+
+        it "should set reply_to if set" do
+          message = mock
+          Message.expects(:new).with(@request, nil, {:agent => "foo", :type => :request, :collective => "mcollective", :filter => @rpcclient.filter, :options => @rpcclient.options}).returns(message)
+
+          @rpcclient.reply_to = "/reply/to"
+          message.expects(:reply_to=).with("/reply/to")
+
+          @rpcclient.expects(:identity_filter_discovery_optimization)
+          @rpcclient.fire_and_forget_request("rspec", {:rspec => "test"})
+        end
+
+        it "should support direct_requests with discovery data supplied" do
+          message = mock
+          Message.expects(:new).with(@request, nil, {:agent => "foo", :type => :request, :collective => "mcollective", :filter => @rpcclient.filter, :options => @rpcclient.options}).returns(message)
+
+          @rpcclient.discover :nodes => "rspec"
+          message.expects(:discovered_hosts=).with(["rspec"])
+          message.expects(:type=).with(:direct_request)
+
+          @rpcclient.expects(:identity_filter_discovery_optimization)
+          @rpcclient.fire_and_forget_request("rspec", {:rspec => "test"})
+        end
+
+        it "should support direct_requests with discoverers that force direct mode" do
+          message = mock
+          Message.expects(:new).with(@request, nil, {:agent => "foo", :type => :request, :collective => "mcollective", :filter => @rpcclient.filter, :options => @rpcclient.options}).returns(message)
+
+          @discoverer.stubs(:force_direct_mode?).returns(true)
+          @rpcclient.stubs(:discover).returns(["rspec"])
+
+          message.expects(:discovered_hosts=).with(["rspec"])
+          message.expects(:type=).with(:direct_request)
+
+          @rpcclient.expects(:identity_filter_discovery_optimization)
+          @rpcclient.fire_and_forget_request("rspec", {:rspec => "test"})
         end
       end
 

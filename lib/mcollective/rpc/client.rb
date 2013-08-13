@@ -56,6 +56,7 @@ module MCollective
         @discovery_method = initial_options[:discovery_method] || Config.instance.default_discovery_method
         @discovery_options = initial_options[:discovery_options] || []
         @force_display_mode = initial_options[:force_display_mode] || false
+        @publish_timeout = initial_options[:publish_timeout] || false
 
         @batch_size = Integer(initial_options[:batch_size] || 0)
         @batch_sleep_time = Float(initial_options[:batch_sleep_time] || 1)
@@ -520,7 +521,8 @@ module MCollective
       # Provides a normal options hash like you would get from
       # Optionparser
       def options
-        {:disctimeout => @discovery_timeout,
+        {:disctimeout => discovery_timeout,
+         :publish_timeout => @publish_timeout,
          :timeout => @timeout,
          :verbose => @verbose,
          :filter => @filter,

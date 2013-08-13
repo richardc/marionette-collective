@@ -169,6 +169,10 @@ module MCollective
         @options[:discovery_method] = "flatfile"
         @options[:discovery_options] = v
       end
+
+      @parser.on("--publish-timeout NUMBER", "Time limit for publishing messages") do |v|
+        @options[:publish_timeout] = v.to_i
+      end
     end
 
     private
