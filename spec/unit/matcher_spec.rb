@@ -21,7 +21,7 @@ module MCollective
         result["r_compare"].should == "1"
         result["operator"].should == "=="
         result["name"].should == "foo"
-       end
+      end
 
       it "should create a correct hash when a paramater contains a dot value" do
         result = Matcher.create_function_hash("foo('bar.1').res=1")
@@ -91,7 +91,7 @@ module MCollective
         result["r_compare"].should == "1"
         result["operator"].should == "<="
         result["name"].should == "foo"
-     end
+      end
 
       it "should create a correct hash parameters are empty strings" do
         result = Matcher.create_function_hash("foo('')=1")
@@ -252,7 +252,7 @@ module MCollective
           @function_hash["operator"] = ">="
           result = Matcher.eval_compound_fstatement(@function_hash)
           result.should == true
-       end
+        end
 
         it "should return false if left value does not logically compare to right value" do
           Matcher.expects(:execute_function).returns("1")

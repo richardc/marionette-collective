@@ -75,7 +75,7 @@ module MCollective
             @app.doc_command
           }.to raise_error "test_error"
         end
-     end
+      end
     end
   end
 end
