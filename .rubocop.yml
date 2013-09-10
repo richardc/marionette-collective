@@ -1,0 +1,255 @@
+---
+AllCops:
+  Includes:
+    - Rakefile
+  Excludes:
+    - 'lib/mcollective/vendor/**'
+
+# This first set of disabled cops are probably ones we don't want to ever
+# enable.
+
+# Lines should be as short as they can be, but no shorter
+LineLength:
+  Enabled: false
+
+# Methods should be as short as they can be, but no shorter
+MethodLength:
+  Enabled: false
+
+# 2 or more blank lines in a row
+EmptyLines:
+  Enabled: false
+
+# require magic encoding comment for 1.9
+Encoding:
+  Enabled: false
+
+# all classes need a documentation comment
+Documentation:
+  Enabled: false
+
+# 1.8 hash syntax
+HashSyntax:
+  Enabled: false
+
+# Not 1.9 lamdba syntax
+Lambda:
+  Enabled: false
+
+# symbol names should be like_this (but STOMP gem needs :"stomp-version" at times)
+SymbolName:
+  Enabled: false
+
+# 123456 vs 123_456
+NumericLiterals:
+  Enabled: false
+
+# Number of escaped /'s in regexes before you should give up and use %r
+RegexpLiteral:
+  MaxSlashes: 4
+
+
+###  The following ones we are considering reenabling and fixing up the mess
+
+# use of "" when no interpolation happens
+StringLiterals:
+  Enabled: false
+
+# Spaces after comman ie. (1,2,3)
+SpaceAfterComma:
+  Enabled: false
+
+SpaceAfterSemicolon:
+  Enabled: false
+
+# expect{ vs expect {
+SpaceAroundBraces:
+  Enabled: false
+
+# {:foo => 'bar'} vs { :foo => 'bar' }
+SpaceInsideHashLiteralBraces:
+  Enabled: false
+
+SpaceInsideBrackets:
+  Enabled: false
+
+# { :foo=>'bar' } vs { :foo=>'bar' }
+SpaceAroundOperators:
+  Enabled: false
+
+# def foo(bar=1) vs def foo(bar = 1)
+SpaceAroundEqualsInParameterDefault:
+  Enabled: false
+
+# foo() vs foo
+MethodCallParentheses:
+  Enabled: false
+
+# ["foo", "bar"] vs %w[ foo bar ] or %W[ foo bar ]
+WordArray:
+  Enabled: false
+
+# rescue Exception rather than rescuing a specific class
+RescueException:
+  Enabled: false
+
+# handle exceptions, don't just catch them
+HandleExceptions:
+  Enabled: false
+
+# foo(1, 2) rescue Boom
+RescueModifier:
+  Enabled: false
+
+# Use proc instead of Proc.new.
+Proc:
+  Enabled: false
+
+# "foo %s" % [ string ] vs sprintf("foo %s", string)
+FavorSprintf:
+  Enabled: false
+
+CaseIndentation:
+  Enabled: false
+
+ShadowingOuterLocalVariable:
+  Enabled: false
+
+RedundantReturn:
+  Enabled: false
+
+RedundantBegin:
+  Enabled: false
+
+SignalException:
+  Enabled: false
+
+# Long Parameter Lists
+ParameterLists:
+  Enabled: false
+
+BlockNesting:
+  Enabled: false
+
+ClassAndModuleCamelCase:
+  Enabled: false
+
+AvoidPerlBackrefs:
+  Enabled: false
+
+AvoidPerlisms:
+  Enabled: false
+
+AccessControl:
+  Enabled: false
+
+ParenthesesAroundCondition:
+  Enabled: false
+
+UnusedLocalVariable:
+  Enabled: false
+
+AvoidGlobalVars:
+  Enabled: false
+
+IndentationWidth:
+  Enabled: false
+
+Semicolon:
+  Enabled: false
+
+TrailingWhitespace:
+  Enabled: false
+
+AvoidClassVars:
+  Enabled: false
+
+IfUnlessModifier:
+  Enabled: false
+
+BlockAlignment:
+  Enabled: false
+
+EndAlignment:
+  Enabled: false
+
+UnlessElse:
+  Enabled: false
+
+ConstantName:
+  Enabled: false
+
+AssignmentInCondition:
+  Enabled: false
+
+ReduceArguments:
+  Enabled: false
+
+NilComparison:
+  Enabled: false
+
+TrivialAccessors:
+  Enabled: false
+
+ColonMethodCall:
+  Enabled: false
+
+EmptyLiteral:
+  Enabled: false
+
+CollectionMethods:
+  Enabled: false
+
+SpaceInsideParens:
+  Enabled: false
+
+SpaceAfterControlKeyword:
+  Enabled: false
+
+Blocks:
+  Enabled: false
+
+Eval:
+  Enabled: false
+
+RedundantSelf:
+  Enabled: false
+
+AlignParameters:
+  Enabled: false
+
+LiteralInCondition:
+  Enabled: false
+
+DefWithoutParentheses:
+  Enabled: false
+
+FavorUnlessOverNegatedIf:
+  Enabled: false
+
+FavorUntilOverNegatedWhile:
+  Enabled: false
+
+AndOr:
+  Enabled: false
+
+MultilineIfThen:
+  Enabled: false
+
+WhileUntilModifier:
+  Enabled: false
+
+Loop:
+  Enabled: false
+
+UselessAssignment:
+  Enabled: false
+
+ParenthesesAsGroupedExpression:
+  Enabled: false
+
+LeadingCommentSpace:
+  Enabled: false
+
+AvoidFor:
+  Enabled: false
