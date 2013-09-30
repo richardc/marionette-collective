@@ -36,8 +36,8 @@ def init
   FileUtils.mkdir("build") unless File.exist?("build")
 end
 
-def safe_system *args
-  raise RuntimeError, "Failed: #{args.join(' ')}" unless system *args
+def safe_system(*args)
+  raise RuntimeError, "Failed: #{args.join(' ')}" unless system(*args)
 end
 
 spec = Gem::Specification.new do |s|

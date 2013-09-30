@@ -62,7 +62,7 @@ module MCollective
     end
 
     def self.safe_system(*args)
-      raise(RuntimeError, "Failed: #{args.join(' ')}") unless system *args
+      raise(RuntimeError, "Failed: #{args.join(' ')}") unless system(*args)
     end
   end
 end
