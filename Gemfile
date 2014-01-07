@@ -1,7 +1,7 @@
 source 'https://rubygems.org'
 
 gem 'json'
-gem 'stomp'
+gem 'stomp', '~> 1.3.2'
 gem 'systemu'
 
 group :dev do

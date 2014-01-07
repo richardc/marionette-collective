@@ -27,7 +27,7 @@ gem_excludes: "bin/mcollectived lib/mcollective/runner.rb lib/mcollective/vendor
 gem_runtime_dependencies:
   systemu:
   json:
-  stomp:
+  stomp: '~> 1.3.2'
   i18n:
 gem_rdoc_options:
   - --line-numbers
