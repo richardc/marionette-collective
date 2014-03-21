@@ -145,7 +145,17 @@ module MCollective
 
     # Run the command using native ruby ::Process calls - should be better on Windows
     def runcommand_native
-      raise 'slack'
+      require 'open3'
+      # options are common to Process.spawn
+      options = {
+        :chdir      => @cwd,
+        :stdin_data => @stdin,
+      }
+      stdout, stderr, status = ::Open3.capture3(@environment, @command, options)
+      @stdout << stdout
+      @stderr << stderr
+      @status = status
+      @status
     end
   end
 end
