@@ -20,9 +20,11 @@ module MCollective
   #   timeout     - a timeout in seconds after which the subprocess is killed,
   #                 the special value :on_thread_exit kills the subprocess
   #                 when the invoking thread (typically the agent) has ended
+  #   provider    - how to run the command.  valid values 'systemu', 'native'.
+  #                 defaults to 'systemu'
   #
   class Shell
-    attr_reader :environment, :command, :status, :stdout, :stderr, :stdin, :cwd, :timeout
+    attr_reader :environment, :command, :status, :stdout, :stderr, :stdin, :cwd, :timeout, :provider
 
     def initialize(command, options={})
       @environment = {"LC_ALL" => "C"}
@@ -33,6 +35,7 @@ module MCollective
       @stdin = nil
       @cwd = Dir.tmpdir
       @timeout = nil
+      @provider = 'systemu'
 
       options.each do |opt, val|
         case opt.to_s
@@ -61,12 +64,31 @@ module MCollective
           when "timeout"
             raise "timeout should be a positive integer or the symbol :on_thread_exit symbol" unless val.eql?(:on_thread_exit) || ( val.is_a?(Fixnum) && val>0 )
             @timeout = val
+
+          when 'provider'
+            legal_providers = %w{ systemu native }
+            if legal_providers.include?(val)
+              @provider = val
+            else
+              raise "Provider #{val} not one of #{legal_providers.join(',')}"
+            end
         end
       end
     end
 
-    # Actually does the systemu call passing in the correct environment, stdout and stderr
     def runcommand
+      case @provider
+      when 'systemu'
+        runcommand_systemu
+      when 'native'
+        runcommand_native
+      else
+        raise "Unknown provider #{@provider}"
+      end
+    end
+
+    # Actually does the systemu call passing in the correct environment, stdout and stderr
+    def runcommand_systemu
       opts = {"env"    => @environment,
               "stdout" => @stdout,
               "stderr" => @stderr,
@@ -119,6 +141,11 @@ module MCollective
       end
       @status.thread.kill
       @status
+    end
+
+    # Run the command using native ruby ::Process calls - should be better on Windows
+    def runcommand_native
+      raise 'slack'
     end
   end
 end

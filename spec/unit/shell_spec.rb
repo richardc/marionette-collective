@@ -69,6 +69,24 @@ module MCollective
         s = Shell.new("date", :stdin => "hello world")
         s.stdin.should == "hello world"
       end
+
+      describe 'provider' do
+        it 'should default to systemu' do
+          s = Shell.new('date')
+          s.provider.should == 'systemu'
+        end
+
+        it 'should allow setting to native' do
+          s = Shell.new('date', :provider => 'native')
+          s.provider.should == 'native'
+        end
+
+        it 'should raise an error when given an invalid provider' do
+          expect {
+            Shell.new('date', :provider => 'i_made_this_up_just_for_testing')
+          }.to raise_error(/Provider i_made_this_up_just_for_testing not one of /)
+        end
+      end
     end
 
     describe "#runcommand" do
