@@ -142,6 +142,29 @@ module MCollective
         return runcommand_systemu
       end
 
+      options = {
+        :command_line => @command,
+        :cwd => @cwd,
+        :startup_info => {
+          :stdin => @stdin,
+          :stdout => @stdout,
+          :stderr => @stderr,
+        },
+        :environment => @environment.map { |k,v| "#{k}=#{v}" }.join(';'),
+        :close_handles => false,
+      }
+      info = ::Process.create(options)
+
+      exitcode = nil
+      while exitcode.nil? do
+        exitcode = Process.get_exitcode(info.process_id)
+        if exitcode.nil?
+          # it didn't exit yet, busy wait some more
+          sleep 0.1
+        end
+      end
+
+      exitcode
     end
   end
 end
