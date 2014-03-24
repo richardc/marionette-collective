@@ -89,20 +89,22 @@ module MCollective
 
       describe 'backend selection' do
         before :each do
-          Shell.stubs(:runcommand_systemu)
-          Shell.stubs(:runcommand_windows)
+          Shell.any_instance.stubs(:runcommand_systemu)
+          Shell.any_instance.stubs(:runcommand_windows)
         end
 
         it 'should choose runcommand_windows on windows' do
           Util.stubs(:windows?).returns(true)
-          Shell.expects(:runcommand_windows)
-          Shell.new('date').runcommand
+          s = Shell.new('date')
+          s.expects(:runcommand_windows)
+          s.runcommand
         end
 
         it 'should choose runcommand_systemu when not on windows' do
           Util.stubs(:windows?).returns(false)
-          Shell.expects(:runcommand_systemu)
-          Shell.new('date').runcommand
+          s = Shell.new('date')
+          s.expects(:runcommand_systemu)
+          s.runcommand
         end
       end
 
@@ -247,18 +249,20 @@ module MCollective
           Util.stubs(:windows?).returns(true)
           Process.stubs(:create)
           Log.stubs(:warn)
-          Shell.stubs(:runcommand_systemu)
+          Shell.any_instance.stubs(:runcommand_systemu)
         end
 
         it 'should load the win32/process module' do
-          Shell.expects(:require).with('win32/process').raises(LoadError)
-          Shell.new('date').runcommand
+          s = Shell.new('date')
+          s.expects(:require).with('win32/process').raises(LoadError)
+          s.runcommand
         end
 
         it 'should fallback to systemu if win32/process is not available' do
-          Shell.stubs(:require).with('win32/process').raises(LoadError)
-          Shell.expects(:runcommand_systemu)
-          Shell.new('date').runcommand
+          s = Shell.new('date')
+          s.stubs(:require).with('win32/process').raises(LoadError)
+          s.expects(:runcommand_systemu)
+          s.runcommand
         end
       end
     end
