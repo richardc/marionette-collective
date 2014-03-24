@@ -112,12 +112,12 @@ module MCollective
         it "should run the command with systemu" do
           Shell.any_instance.stubs("systemu").returns(@systemu).once.with("date", "stdout" => '', "stderr" => '', "env" => {"LC_ALL" => "C"}, 'cwd' => Dir.tmpdir)
           s = Shell.new("date")
-          s.runcommand
+          s.send(:runcommand_systemu)
         end
 
         it "should set stdin, stdout and status" do
           s = Shell.new('ruby -e "STDERR.puts \"stderr\"; STDOUT.puts \"stdout\""')
-          s.runcommand
+          s.send(:runcommand_systemu)
           s.stdout.should == "stdout#{nl}"
           s.stderr.should == "stderr#{nl}"
           s.status.exitstatus.should == 0
@@ -125,14 +125,15 @@ module MCollective
 
         it "should report correct exitcode" do
           s = Shell.new('ruby -e "exit 1"')
-          s.runcommand
+          s.send(:runcommand_systemu)
 
           s.status.exitstatus.should == 1
         end
 
         it "should have correct environment" do
           s = Shell.new('ruby -e "puts ENV[\'LC_ALL\'];puts ENV[\'foo\'];"', :environment => {"foo" => "bar"})
-          s.runcommand
+          s.send(:runcommand_systemu)
+
           s.stdout.should == "C#{nl}bar#{nl}"
         end
 
@@ -140,7 +141,7 @@ module MCollective
           out = "STDOUT"
 
           s = Shell.new('echo foo', :stdout => out)
-          s.runcommand
+          s.send(:runcommand_systemu)
 
           s.stdout.should == "STDOUTfoo#{nl}"
           out.should == "STDOUTfoo#{nl}"
@@ -150,7 +151,7 @@ module MCollective
           out = "STDERR"
 
           s = Shell.new('ruby -e "STDERR.puts \"foo\""', :stderr => out)
-          s.runcommand
+          s.send(:runcommand_systemu)
 
           s.stderr.should == "STDERRfoo#{nl}"
           out.should == "STDERRfoo#{nl}"
@@ -160,21 +161,21 @@ module MCollective
           tmpdir = Pathname.new(Dir.tmpdir).realpath.to_s
           s = Shell.new('ruby -e "puts Dir.pwd"', :cwd => tmpdir)
 
-          s.runcommand
+          s.send(:runcommand_systemu)
 
           s.stdout.should == "#{tmpdir}#{nl}"
         end
 
         it "should send the stdin" do
           s = Shell.new('ruby -e "puts STDIN.gets"', :stdin => "hello world")
-          s.runcommand
+          s.send(:runcommand_systemu)
 
           s.stdout.should == "hello world#{nl}"
         end
 
         it "should support multiple lines of stdin" do
           s = Shell.new('ruby -e "puts STDIN.gets;puts;puts STDIN.gets"', :stdin => "first line\n2nd line")
-          s.runcommand
+          s.send(:runcommand_systemu)
 
           s.stdout.should == "first line#{nl}#{nl}2nd line#{nl}"
         end
@@ -182,7 +183,7 @@ module MCollective
         it "should quietly catch Errno::ESRCH if the systemu process has completed" do
           s = Shell.new("echo foo")
           Thread.any_instance.stubs(:alive?).raises(Errno::ESRCH)
-          s.runcommand
+          s.send(:runcommand_systemu)
         end
 
         describe "timeout has been set" do
@@ -202,7 +203,7 @@ module MCollective
             s.stubs(:sleep).with(2)
             s.expects(:sleep).with(1)
             Process.stubs(:kill).with(0, 1234).returns(1, nil)
-            s.runcommand
+            s.send(:runcommand_systemu)
           end
 
           it "should kill an unresponsive systemu process on timeout" do
@@ -212,7 +213,7 @@ module MCollective
             s.stubs(:sleep).with(2)
             Process.stubs(:kill).with(0, 1234).returns(1)
             Process.expects(:kill).with("KILL", 1234)
-            s.runcommand
+            s.send(:runcommand_systemu)
           end
 
           it "should kill the systemu process if the parent thread exits and :on_thread_exit is specified" do
@@ -221,7 +222,7 @@ module MCollective
             s.stubs(:sleep).with(2)
             Process.stubs(:kill).with(0, 1234).returns(1)
             Process.expects(:kill).with("KILL", 1234)
-            s.runcommand
+            s.send(:runcommand_systemu)
           end
         end
 
@@ -231,7 +232,7 @@ module MCollective
           s.stubs(:systemu).yields(1234).returns(@systemu)
           s.stubs(:sleep).with(1).raises(Errno::ECHILD)
           Log.expects(:warn).with("Could not reap process '1234'.")
-          s.runcommand
+          s.send(:runcommand_systemu)
         end
 
         it "should kill the guard thread when the process returns" do
@@ -239,7 +240,7 @@ module MCollective
           Thread.stubs(:current)
           s.expects(:systemu).returns(@systemu)
           @thread.expects(:kill)
-          result = s.runcommand
+          result = s.send(:runcommand_systemu)
           result.should == @systemu
         end
       end
@@ -249,20 +250,19 @@ module MCollective
           Util.stubs(:windows?).returns(true)
           Process.stubs(:create)
           Log.stubs(:warn)
-          Shell.any_instance.stubs(:runcommand_systemu)
         end
 
         it 'should load the win32/process module' do
           s = Shell.new('date')
           s.expects(:require).with('win32/process').raises(LoadError)
-          s.runcommand
+          s.send(:runcommand_windows)
         end
 
         it 'should fallback to systemu if win32/process is not available' do
           s = Shell.new('date')
           s.stubs(:require).with('win32/process').raises(LoadError)
           s.expects(:runcommand_systemu)
-          s.runcommand
+          s.send(:runcommand_windows)
         end
       end
     end
