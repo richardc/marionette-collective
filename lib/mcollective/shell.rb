@@ -24,7 +24,7 @@ module MCollective
   #                 defaults to 'systemu'
   #
   class Shell
-    attr_reader :environment, :command, :status, :stdout, :stderr, :stdin, :cwd, :timeout, :provider
+    attr_reader :environment, :command, :status, :stdout, :stderr, :stdin, :cwd, :timeout
 
     def initialize(command, options={})
       @environment = {"LC_ALL" => "C"}
@@ -35,7 +35,6 @@ module MCollective
       @stdin = nil
       @cwd = Dir.tmpdir
       @timeout = nil
-      @provider = 'systemu'
 
       options.each do |opt, val|
         case opt.to_s
@@ -64,28 +63,19 @@ module MCollective
           when "timeout"
             raise "timeout should be a positive integer or the symbol :on_thread_exit symbol" unless val.eql?(:on_thread_exit) || ( val.is_a?(Fixnum) && val>0 )
             @timeout = val
-
-          when 'provider'
-            legal_providers = %w{ systemu native }
-            if legal_providers.include?(val)
-              @provider = val
-            else
-              raise "Provider #{val} not one of #{legal_providers.join(',')}"
-            end
         end
       end
     end
 
     def runcommand
-      case @provider
-      when 'systemu'
-        runcommand_systemu
-      when 'native'
-        runcommand_native
+      if ::MCollective::Util.windows?
+        runcommand_windows
       else
-        raise "Unknown provider #{@provider}"
+        runcommand_systemu
       end
     end
+
+  private
 
     # Actually does the systemu call passing in the correct environment, stdout and stderr
     def runcommand_systemu
@@ -143,19 +133,15 @@ module MCollective
       @status
     end
 
-    # Run the command using native ruby ::Process calls - should be better on Windows
-    def runcommand_native
-      require 'open3'
-      # options are common to Process.spawn
-      options = {
-        :chdir      => @cwd,
-        :stdin_data => @stdin,
-      }
-      stdout, stderr, status = ::Open3.capture3(@environment, @command, options)
-      @stdout << stdout
-      @stderr << stderr
-      @status = status
-      @status
+    # Run the command using win32-process ::Process::create
+    def runcommand_windows
+      begin
+        require 'win32/process'
+      rescue LoadError => e
+        Log.warn("Could not load 'win32/process', falling back to systemu: #{e}")
+        return runcommand_systemu
+      end
+
     end
   end
 end
