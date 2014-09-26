@@ -38,7 +38,7 @@ class SystemUniversal
     %w( host ppid pid ruby turd ).each{|a| attr_accessor a}
 
     def quote(*words)
-      words.map{|word| word.inspect}.join(' ')
+      words.map(&:inspect).join(' ')
     end
   end
 

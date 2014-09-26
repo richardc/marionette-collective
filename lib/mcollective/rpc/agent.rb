@@ -272,7 +272,7 @@ module MCollective
         plugin = plugin.to_s.capitalize
 
         # turns foo_bar into FooBar
-        plugin = plugin.to_s.split("_").map {|v| v.capitalize}.join
+        plugin = plugin.to_s.split("_").map(&:capitalize).join
         pluginname = "MCollective::Util::#{plugin}"
 
         PluginManager.loadclass(pluginname) unless MCollective::Util.constants.include?(plugin)

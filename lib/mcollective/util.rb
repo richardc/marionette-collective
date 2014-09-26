@@ -415,7 +415,7 @@ module MCollective
         return [`tput cols`.to_i, `tput lines`.to_i]
 
       elsif command_in_path?('stty')
-        return `stty size`.scan(/\d+/).map {|s| s.to_i }
+        return `stty size`.scan(/\d+/).map(&:to_i)
       else
         return [0, 0]
       end
@@ -512,7 +512,7 @@ module MCollective
 
     # Get field size for printing
     def self.field_size(elements, min_size=40)
-      max_length = elements.max_by { |e| e.length }.length
+      max_length = elements.max_by(&:length).length
       max_length > min_size ? max_length : min_size
     end
 

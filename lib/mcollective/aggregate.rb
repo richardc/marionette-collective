@@ -67,7 +67,7 @@ module MCollective
         end
       end
 
-      summary.reject{|x| x.nil?}.sort do |x,y|
+      summary.reject(&:nil?).sort do |x,y|
         x.result[:output] <=> y.result[:output]
       end
     end

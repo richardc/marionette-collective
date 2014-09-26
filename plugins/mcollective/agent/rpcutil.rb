@@ -13,7 +13,7 @@ module MCollective
 
         cfile = Config.instance.classesfile
         if File.exist?(cfile)
-          reply[:classes] = File.readlines(cfile).map {|i| i.chomp}
+          reply[:classes] = File.readlines(cfile).map(&:chomp)
         end
       end
 
@@ -25,7 +25,7 @@ module MCollective
 
       action "get_facts" do
         response = {}
-        request[:facts].split(',').map { |x| x.strip }.each do |fact|
+        request[:facts].split(',').map(&:strip).each do |fact|
           value = Facts[fact]
           response[fact] = value
         end

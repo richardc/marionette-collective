@@ -93,7 +93,7 @@ module MCollective
     end
 
     def main
-      actions = configuration.keys.map{|k| k.to_s}.grep(/^list_/)
+      actions = configuration.keys.map(&:to_s).grep(/^list_/)
 
       abort "Please choose either --list-[agents|actions|inputs|applications]" if actions.empty?
       abort "Please choose only one of --list-[agents|actions|inputs|applications]" if actions.size > 1

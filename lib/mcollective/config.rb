@@ -47,7 +47,7 @@ module MCollective
                 when "registration_splay"
                   @registration_splay = Util.str_to_bool(val)
                 when "collectives"
-                  @collectives = val.split(",").map {|c| c.strip}
+                  @collectives = val.split(",").map(&:strip)
                 when "main_collective"
                   @main_collective = val
                 when "logfile"
