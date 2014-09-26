@@ -58,6 +58,10 @@ Lint/AssignmentInCondition:
   Enabled: false
 
 # DISABLED - not useful
+Metrics/PerceivedComplexity:
+  Enabled: false
+
+# DISABLED - not useful
 Style/SpaceBeforeComment:
   Enabled: false
 
