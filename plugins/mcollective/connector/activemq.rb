@@ -297,7 +297,8 @@ module MCollective
       def ssl_parameters(poolnum, fallback)
         params = {:cert_file => get_cert_file(poolnum),
                   :key_file => get_key_file(poolnum),
-                  :ts_files  => get_option("activemq.pool.#{poolnum}.ssl.ca", false)}
+                  :ts_files  => get_option("activemq.pool.#{poolnum}.ssl.ca", false),
+                  :use_ruby_ciphers => true}
 
         raise "cert, key and ca has to be supplied for verified SSL mode" unless params[:cert_file] && params[:key_file] && params[:ts_files]
 
