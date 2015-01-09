@@ -287,8 +287,7 @@ cd File.dirname(__FILE__) do
   # Set these values to what you want installed.
   configs = glob(%w{etc/*.dist})
   erbs = glob(%w{etc/*.erb})
-  bins = glob(%w{bin/mco})
-  sbins = glob(%w{bin/mcollectived})
+  bins = glob(%w{bin/mco bin/mcollectived})
   rdoc = glob(%w{bin/* lib/**/*.rb README* })
   libs = glob(%w{lib/**/*})
   plugins = glob(%w{plugins/**/*})
@@ -300,7 +299,6 @@ cd File.dirname(__FILE__) do
   do_configs(configs, InstallOptions.configdir, 'etc/|\.dist') if InstallOptions.configs
   do_configs(erbs, InstallOptions.configdir) if InstallOptions.configs
   do_bins(bins, InstallOptions.bindir)
-  do_bins(sbins, InstallOptions.sbindir)
   do_libs(libs, InstallOptions.sitelibdir)
   do_libs(plugins, InstallOptions.plugindir, 'plugins/')
 end
