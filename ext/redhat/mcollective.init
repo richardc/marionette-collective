@@ -17,7 +17,7 @@
 ### END INIT INFO
 
 mcollectived="/opt/puppetlabs/agent/bin/mcollectived"
-pidfile="/var/run/mcollectived.pid"
+pidfile="/var/run/puppetlabs/agent/mcollectived.pid"
 if [ -d /var/lock/subsys ]; then
     # RedHat/CentOS/etc who use subsys
     lockfile="/var/lock/subsys/mcollective"

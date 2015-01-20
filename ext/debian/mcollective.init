@@ -24,7 +24,7 @@ uid=`id -u`
 
 
 # PID directory
-pidfile="/var/run/mcollectived.pid"
+pidfile="/var/run/puppetlabs/agent/mcollectived.pid"
 
 name="mcollective"
 mcollectived=/opt/puppetlabs/agent/bin/mcollectived
