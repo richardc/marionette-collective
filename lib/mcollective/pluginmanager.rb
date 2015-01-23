@@ -118,7 +118,7 @@ module MCollective
 
       plugins = []
 
-      Config.instance.libdir.each do |libdir|
+      $LOAD_PATH.each do |libdir|
         plugdir = File.join([libdir, "mcollective", type.to_s])
         next unless File.directory?(plugdir)
 

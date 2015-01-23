@@ -88,7 +88,7 @@ module MCollective
         ddlname = @pluginname unless ddlname
         ddltype = @plugintype unless ddltype
 
-        @config.libdir.each do |libdir|
+        $LOAD_PATH.each do |libdir|
           ddlfile = File.join([libdir, "mcollective", ddltype.to_s, "#{ddlname}.ddl"])
           if File.exist?(ddlfile)
             Log.debug("Found #{ddlname} ddl at #{ddlfile}")
