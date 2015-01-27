@@ -67,6 +67,9 @@ module MCollective
 
     # The main runner loop
     def main_loop
+      # force the autoload on Agents
+      ::MCollective.const_get(:Agents)
+
       # Enter the main context
       @receiver_thread = start_receiver_thread
       loop do
