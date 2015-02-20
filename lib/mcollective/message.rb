@@ -114,8 +114,12 @@ module MCollective
 
     def base64_decode!
       return unless @base64
-
-      @payload = SSL.base64_decode(@payload)
+      begin
+        @payload = SSL.base64_decode(@payload)
+      rescue Exception => e
+        Log.warn("failed to base64 decode #{self.inspect}")
+        raise e
+      end
       @base64 = false
     end
 
