@@ -182,6 +182,18 @@ module MCollective
         token.should == ["statement", "foo=a very long string"]
       end
 
+      it "should correctly tokenize a statement escaped with double quotes containing escaped quotes" do
+        scanner = Scanner.new('foo="a very long \"embedded quoted\" string"')
+        token = scanner.get_token
+        token.should == ["statement", "foo=a very long \"embedded quoted\" string"]
+      end
+
+      it "should correctly tokenize a statement escaped with single quotes containig escaped quotes" do
+        scanner = Scanner.new("foo='a very long \\'embedded quoted\\' string'")
+        token = scanner.get_token
+        token.should == ["statement", "foo=a very long 'embedded quoted' string"]
+      end
+
       it "should correctly tokenize a statement with an escaped sequence and special chars" do
         scanner = Scanner.new('foo="/slashes/in/the/hizzouse"')
         token = scanner.get_token
