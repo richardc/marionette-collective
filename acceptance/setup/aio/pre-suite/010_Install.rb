@@ -77,3 +77,5 @@ agents.each do |agent|
 end
 
 configure_gem_mirror(hosts)
+
+on master, puppet("resource service puppetserver ensure=running")
