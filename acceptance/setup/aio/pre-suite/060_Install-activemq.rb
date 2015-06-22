@@ -139,6 +139,14 @@ plugin.activemq.pool.1.ssl.key = /etc/puppetlabs/mcollective/server.key
 # Facts
 factsource = yaml
 plugin.yaml = /etc/puppetlabs/mcollective/facts.yaml
+
+# Plugin settings for puppet-agent
+plugin.puppet.command = /opt/puppetlabs/bin/puppet agent
+plugin.puppet.splay = true
+plugin.puppet.splaylimit = 30
+plugin.puppet.config = /etc/puppetlabs/puppet/puppet.conf
+plugin.puppet.windows_service = puppet
+plugin.puppet.signal_daemon = true
 EOS
 
   win_server_cfg =<<EOS
@@ -168,6 +176,14 @@ plugin.activemq.pool.1.ssl.key = C:\\ProgramData\\PuppetLabs\\mcollective\\etc\\
 # Facts
 factsource = yaml
 plugin.yaml = C:\\ProgramData\\PuppetLabs\\mcollective\\etc\\facts.yaml
+
+# Plugin settings for puppet-agent
+plugin.puppet.command = "C:\\Program Files\\Puppet Labs\\Puppet\\bin\\puppet.bat" agent
+plugin.puppet.splay = true
+plugin.puppet.splaylimit = 30
+plugin.puppet.config = C:\\ProgramData\\PuppetLabs\\puppept\\etc\\puppet\\puppet.conf
+plugin.puppet.windows_service = puppet
+plugin.puppet.signal_daemon = true
 EOS
 
     unless h.platform =~/windows/ then
