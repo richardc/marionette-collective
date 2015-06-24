@@ -16,6 +16,7 @@ gem "beaker", *location_for(ENV['BEAKER_VERSION'] || '~> 2.8')
 gem "rake", "~> 10.1"
 gem "httparty", :require => false
 gem 'uuidtools', :require => false
+gem 'pry-plus'
 
 group(:test) do
   gem "rspec", "~> 2.14.0", :require => false

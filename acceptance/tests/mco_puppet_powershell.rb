@@ -75,6 +75,7 @@ with_puppet_running_on(master, master_opts) do
   on(mco_master, "#{mco_bin} puppet runonce")
   sleep 30
   windows_hosts.each do |h|
+    binding.pry
     on h, "dir C:/#{testfile}.txt"
   end
 end
