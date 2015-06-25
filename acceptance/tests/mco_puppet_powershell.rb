@@ -1,5 +1,5 @@
 test_name "mco puppet run with powershell provider" do
-  on master, puppet("module install puppetlabs/powershell")
+  on master, puppet("module install puppetlabs-powershell")
   hosts.each do |host|
     stub_hosts_on(host, 'puppet' => master.ip)
   end
