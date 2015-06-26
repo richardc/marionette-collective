@@ -5,6 +5,9 @@ test_name "mco puppet run with powershell provider" do
   end
   on master, puppet("resource service puppetserver ensure=running")
   hosts.each do |h|
+    if h[:platform] =~ /windows/
+      on h, 'whoami.exe /priv'
+    end
     on h, puppet("agent -t")
     if h[:platform] =~ /windows/
       on h, 'icacls.exe C:/ProgramData/PuppetLabs/puppet/cache/client_data'
