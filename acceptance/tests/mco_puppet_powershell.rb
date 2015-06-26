@@ -6,12 +6,15 @@ test_name "mco puppet run with powershell provider" do
   on master, puppet("resource service puppetserver ensure=running")
   hosts.each do |h|
     on h, puppet("agent -t")
+    if h[:platform] =~ /windows/
+      on h, 'icacls.exe C:/ProgramData/PuppetLabs/puppet/cache/client_data'
+    end
   end
 
   windows_hosts = []
   hosts.each do |h|
     if /windows/ =~ h[:platform]
-       windows_hosts << h
+      windows_hosts << h
     end
   end
 

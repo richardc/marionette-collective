@@ -73,6 +73,8 @@ agents.each do |agent|
     filename = ENV['MSI_FILENAME'] || "puppet-agent-#{arch}.msi"
 
     install_puppet_from_msi(agent, :url => "#{base_url}/#{filename}")
+    # it's not created yet
+    #on agent, 'icacls.exe C:\\ProgramData\\PuppetLabs\\puppet\\cache\\client_data'
   end
 end
 
